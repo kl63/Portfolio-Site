@@ -15,9 +15,9 @@
     COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
     
     RUN \
-      if [ -f yarn.lock ]; then yarn install --frozen-lockfile && yarn add --dev tailwindcss autoprefixer postcss @tailwindcss/typography; \
-      elif [ -f package-lock.json ]; then npm install --legacy-peer-deps && npm install --save-dev tailwindcss autoprefixer postcss @tailwindcss/typography; \
-      elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile && pnpm add -D tailwindcss autoprefixer postcss @tailwindcss/typography; \
+      if [ -f yarn.lock ]; then yarn install --frozen-lockfile --ignore-engines && yarn add --dev --ignore-engines tailwindcss autoprefixer postcss; \
+      elif [ -f package-lock.json ]; then npm install --legacy-peer-deps && npm install --save-dev --legacy-peer-deps tailwindcss autoprefixer postcss; \
+      elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile --no-strict-peer-dependencies && pnpm add -D --no-strict-peer-dependencies tailwindcss autoprefixer postcss; \
       else echo "No lockfile found" && exit 1; \
       fi
     
