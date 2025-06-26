@@ -1,40 +1,38 @@
+# Use a lightweight Node.js Alpine image
 FROM node:18-alpine
 WORKDIR /app
 
-# Install system dependencies
+# Set environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Install minimal dependencies
 RUN apk add --no-cache libc6-compat
 
-# Install Tailwind CSS globally to ensure it's available for the build
-RUN npm install -g tailwindcss postcss autoprefixer
-
-# Copy package files first
+# Copy only the necessary files for the build
 COPY package.json ./
-
-# Copy essential files for the build
 COPY tailwind.config.js postcss.config.js ./
 COPY app ./app
 COPY components ./components
 COPY content ./content
 COPY lib ./lib
 COPY public ./public
-COPY next.config.js next.config.ts ./
+COPY next.config.js ./
 COPY setup-paths.mjs ./
 COPY tsconfig.json ./
 
-# Install dependencies with production flag to save space
-RUN npm install --only=prod --legacy-peer-deps
-# Install only the dev dependencies we absolutely need
-RUN npm install --save-dev tailwindcss@3.4.0 postcss@8.4.33 autoprefixer@10.4.16 @tailwindcss/typography@0.5.10
+# Install production dependencies with minimal cache
+RUN npm install --production --no-package-lock --no-optional --legacy-peer-deps
 
-# Set up environment variables
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Install only the absolutely required dev dependencies (Tailwind CSS)
+RUN npm install --no-package-lock --no-optional --no-save tailwindcss postcss autoprefixer @tailwindcss/typography
 
-# Fix path aliases
+# Run setup script and build
 RUN node setup-paths.mjs
-
-# Build the application
 RUN npm run build
 
-# Start the app
+# Remove unnecessary files to save space
+RUN rm -rf node_modules/.cache && rm -rf /root/.npm
+
+# Start the application
 CMD ["npm", "start"]
