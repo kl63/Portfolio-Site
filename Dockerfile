@@ -1,74 +1,46 @@
-# -------- BASE IMAGE --------
-FROM node:18-alpine AS base
-
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS=--max-old-space-size=512
+# Simple one-stage build to ensure all dependencies are properly installed
+FROM node:18-alpine
 
 WORKDIR /app
 
+# Install system dependencies
 RUN apk add --no-cache libc6-compat
 
-# -------- DEPENDENCIES --------
-FROM base AS deps
+# Copy package.json and package-lock.json
+COPY package*.json ./
 
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+# Install all dependencies (including dev dependencies needed for build)
+RUN npm install --legacy-peer-deps
 
-# Install dependencies including Tailwind CSS
-RUN \
-  if [ -f yarn.lock ]; then \
-    yarn install --frozen-lockfile --ignore-engines && \
-    yarn add --dev tailwindcss autoprefixer postcss; \
-  elif [ -f package-lock.json ]; then \
-    npm install --legacy-peer-deps && \
-    npm install --save-dev --legacy-peer-deps tailwindcss autoprefixer postcss; \
-  elif [ -f pnpm-lock.yaml ]; then \
-    corepack enable pnpm && \
-    pnpm install --frozen-lockfile --no-strict-peer-dependencies && \
-    pnpm add -D --no-strict-peer-dependencies tailwindcss autoprefixer postcss; \
-  else echo "No lockfile found" && exit 1; \
-  fi
+# Explicitly install Tailwind CSS and related packages
+RUN npm install --save-dev --legacy-peer-deps tailwindcss@3.4.0 postcss@8.4.33 autoprefixer@10.4.16 @tailwindcss/typography@0.5.10
 
-# -------- BUILDER --------
-FROM base AS builder
+# Create tailwind.config.js if it doesn't exist
+RUN echo 'module.exports = {\n\
+  content: [\"./pages/**/*.{js,ts,jsx,tsx}\", \"./components/**/*.{js,ts,jsx,tsx}\", \"./app/**/*.{js,ts,jsx,tsx}\"],\n\
+  theme: {\n\
+    extend: {},\n\
+  },\n\
+  plugins: [],\n\
+};' > tailwind.config.js
 
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/package.json ./package.json
+# Create postcss.config.js if it doesn't exist
+RUN echo 'module.exports = {\n\
+  plugins: {\n\
+    tailwindcss: {},\n\
+    autoprefixer: {},\n\
+  },\n\
+};' > postcss.config.js
 
 # Copy project files
 COPY . .
 
+# Set up environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
 # Build the application
-RUN \
-  if [ -f yarn.lock ]; then \
-    yarn build; \
-  elif [ -f package-lock.json ]; then \
-    npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then \
-    pnpm run build; \
-  else \
-    echo "No lockfile found" && exit 1; \
-  fi
+RUN npm run build
 
-# -------- RUNNER --------
-FROM base AS runner
-
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs && \
-    mkdir -p .next && \
-    chown -R nextjs:nodejs /app
-
-WORKDIR /app
-
-# Copy production build files
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-
-USER nextjs
-
-EXPOSE 3000
-ENV PORT=3000
-CMD ["node", "server.js"]
+# Set the command to run the application
+CMD ["npm", "start"]
