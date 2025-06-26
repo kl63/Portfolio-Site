@@ -29,6 +29,7 @@ module.exports = {
       textColor: {
         foreground: 'var(--foreground)',
         primary: 'var(--primary)',
+        'muted-foreground': 'var(--muted-foreground)',
       },
     },
   },
