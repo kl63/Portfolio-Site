@@ -20,6 +20,9 @@ module.exports = {
       ringColor: {
         ring: 'var(--ring)',
       },
+      outlineColor: {
+        ring: 'var(--ring)',
+      },
       backgroundColor: {
         background: 'var(--background)',
       },
