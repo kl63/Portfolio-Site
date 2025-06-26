@@ -25,7 +25,7 @@ COPY tsconfig.json ./
 RUN npm install --production --no-package-lock --no-optional --legacy-peer-deps
 
 # Install only the absolutely required dev dependencies (Tailwind CSS)
-RUN npm install --no-package-lock --no-optional --no-save tailwindcss postcss autoprefixer @tailwindcss/typography
+RUN npm install --no-package-lock --no-optional --no-save --legacy-peer-deps tailwindcss postcss autoprefixer @tailwindcss/typography
 
 # Run setup script and build
 RUN node setup-paths.mjs
