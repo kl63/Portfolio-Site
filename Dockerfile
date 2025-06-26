@@ -17,7 +17,7 @@ COPY components ./components
 COPY content ./content
 COPY lib ./lib
 COPY public ./public
-COPY next.config.mjs ./
+COPY next.config.js next.config.ts ./
 COPY setup-paths.mjs ./
 COPY tsconfig.json ./
 
