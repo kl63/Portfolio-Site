@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone', // Enable standalone output mode for Docker deployment
+  experimental: {
+    // This improves module resolution in Docker
+    outputFileTracingRoot: process.cwd(),
+  },
   images: {
     domains: ['images.unsplash.com', 'plus.unsplash.com'],
     remotePatterns: [
