@@ -1,38 +1,58 @@
-# Simple one-stage build to ensure all dependencies are properly installed
-FROM node:18-alpine
-
+FROM node:18-alpine AS dependencies
 WORKDIR /app
-
-# Install system dependencies
 RUN apk add --no-cache libc6-compat
 
-# Copy all project files first to get configurations
+# Copy package files first for better layer caching
+COPY package.json package-lock.json ./
+
+# Install production dependencies only
+RUN npm ci --legacy-peer-deps
+
+# Development dependencies - explicitly install Tailwind CSS and related packages
+FROM node:18-alpine AS devdeps
+WORKDIR /app
+RUN apk add --no-cache libc6-compat
+COPY package.json package-lock.json ./
+COPY --from=dependencies /app/node_modules ./node_modules
+
+# Install development dependencies, including Tailwind
+RUN npm install --only=dev --legacy-peer-deps
+RUN npm install --save-dev tailwindcss@3.4.0 postcss@8.4.33 autoprefixer@10.4.16 @tailwindcss/typography@0.5.10
+
+# Build stage
+FROM node:18-alpine AS builder
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Copy all dependencies from previous stages
+COPY --from=devdeps /app/node_modules ./node_modules
+
+# Copy all app files
 COPY . .
 
-# Install all dependencies 
-RUN npm install --legacy-peer-deps
-
-# Explicitly install and link Tailwind CSS and related packages globally
-RUN npm install -g tailwindcss postcss autoprefixer
-
-# Also install Tailwind locally to ensure it's in the right context
-RUN npm install --save-dev --legacy-peer-deps tailwindcss@3.4.0 postcss@8.4.33 autoprefixer@10.4.16 @tailwindcss/typography@0.5.10
-
-# Ensure postcss.config.js exists
+# Create postcss config if missing
 RUN if [ ! -f postcss.config.js ]; then \
     echo 'module.exports = {plugins: {tailwindcss: {}, autoprefixer: {}}}' > postcss.config.js; \
     fi
 
-# Set up environment variables
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PATH="/app/node_modules/.bin:$PATH"
-
-# Run the setup script to fix path aliases
+# Fix path aliases if needed
 RUN node setup-paths.mjs
 
 # Build the application
 RUN npm run build
 
-# Set the command to run the application
-CMD ["npm", "start"]
+# Production stage
+FROM node:18-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Copy the built app and necessary files
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Start the app
+CMD ["node", "server.js"]
