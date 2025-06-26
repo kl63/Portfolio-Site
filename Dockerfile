@@ -1,47 +1,24 @@
-# Use a lightweight Node.js Alpine image
-FROM node:18-alpine
+# Use Node.js 18
+FROM node:18
+
+# Set working directory
 WORKDIR /app
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Set NODE_PATH to ensure modules can be found
-ENV NODE_PATH=/app/node_modules
-ENV PATH=$PATH:/app/node_modules/.bin
 
-# Install minimal dependencies
-RUN apk add --no-cache libc6-compat
-
-# Copy package.json first
+# Copy package files
 COPY package.json ./
 
-# Create a minimal package.json with just the dependencies we need
-RUN npm install --no-package-lock --legacy-peer-deps \
-    tailwindcss@3.4.0 postcss@8.4.33 autoprefixer@10.4.16 @tailwindcss/typography@0.5.10 \
-    react-is
+# Install dependencies including Tailwind CSS explicitly
+RUN npm install
+RUN npm install --save-dev tailwindcss postcss autoprefixer @tailwindcss/typography
 
-# Copy configuration files
-COPY tailwind.config.js postcss.config.js ./
-COPY tsconfig.json ./
-COPY next.config.js ./
-COPY setup-paths.mjs ./
+# Copy the rest of the application
+COPY . .
 
-# Copy application files
-COPY app ./app
-COPY components ./components
-COPY content ./content
-COPY lib ./lib
-COPY public ./public
-
-# Install all dependencies
-RUN npm install --legacy-peer-deps
-
-# Verify tailwindcss is installed
-RUN ls -la node_modules/.bin/
-RUN test -f node_modules/.bin/tailwindcss || echo "Tailwind CLI not found!"
-RUN npx tailwindcss --help
-
-# Create a postcss.config.js file if it doesn't exist
+# Create postcss.config.js if not exists
 RUN if [ ! -f postcss.config.js ]; then \
     echo 'module.exports = {plugins: {tailwindcss: {}, autoprefixer: {}}}' > postcss.config.js; \
     fi
