@@ -19,15 +19,14 @@
       elif [ -f package-lock.json ]; then npm install --legacy-peer-deps; \
       elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
       else echo "No lockfile found" && exit 1; \
-      fi
-    
-    # Force install @tailwindcss/postcss in case it’s missing
-    RUN npm install --save-dev @tailwindcss/postcss --legacy-peer-deps
+      fi && \
+      npm install --save-dev @tailwindcss/postcss --legacy-peer-deps
     
     # -------- BUILDER --------
     FROM base AS builder
     
     COPY --from=deps /app/node_modules ./node_modules
+    COPY --from=deps /app/package.json ./package.json
     COPY . .
     
     RUN \
