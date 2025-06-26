@@ -15,22 +15,29 @@ RUN npm install --legacy-peer-deps
 # Explicitly install Tailwind CSS and related packages
 RUN npm install --save-dev --legacy-peer-deps tailwindcss@3.4.0 postcss@8.4.33 autoprefixer@10.4.16 @tailwindcss/typography@0.5.10
 
-# Create tailwind.config.js if it doesn't exist
-RUN echo 'module.exports = {\n\
-  content: [\"./pages/**/*.{js,ts,jsx,tsx}\", \"./components/**/*.{js,ts,jsx,tsx}\", \"./app/**/*.{js,ts,jsx,tsx}\"],\n\
-  theme: {\n\
-    extend: {},\n\
-  },\n\
-  plugins: [],\n\
-};' > tailwind.config.js
+# Create Tailwind and PostCSS configuration files
+RUN cat > tailwind.config.js << 'EOL'
+module.exports = {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx}", 
+    "./components/**/*.{js,ts,jsx,tsx}", 
+    "./app/**/*.{js,ts,jsx,tsx}"
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+EOL
 
-# Create postcss.config.js if it doesn't exist
-RUN echo 'module.exports = {\n\
-  plugins: {\n\
-    tailwindcss: {},\n\
-    autoprefixer: {},\n\
-  },\n\
-};' > postcss.config.js
+RUN cat > postcss.config.js << 'EOL'
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+EOL
 
 # Copy project files
 COPY . .
@@ -38,6 +45,9 @@ COPY . .
 # Set up environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Run the setup script to fix path aliases
+RUN node setup-paths.mjs
 
 # Build the application
 RUN npm run build
