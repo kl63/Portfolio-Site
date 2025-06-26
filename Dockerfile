@@ -36,11 +36,10 @@ COPY public ./public
 # Install all dependencies
 RUN npm install --legacy-peer-deps
 
-# Make sure Tailwind is accessible system-wide 
-RUN ln -s /app/node_modules/.bin/tailwindcss /usr/local/bin/tailwindcss
-
-# Verify tailwindcss is available
-RUN tailwindcss --help
+# Verify tailwindcss is installed
+RUN ls -la node_modules/.bin/
+RUN test -f node_modules/.bin/tailwindcss || echo "Tailwind CLI not found!"
+RUN npx tailwindcss --help
 
 # Create a postcss.config.js file if it doesn't exist
 RUN if [ ! -f postcss.config.js ]; then \
