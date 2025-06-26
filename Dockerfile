@@ -6,7 +6,7 @@ RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
 
 # Install production dependencies only
-RUN npm ci --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 # Development dependencies - explicitly install Tailwind CSS and related packages
 FROM node:18-alpine AS devdeps
