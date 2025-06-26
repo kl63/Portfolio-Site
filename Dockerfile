@@ -18,11 +18,12 @@
     
     # Install dependencies based on lock file
     RUN \
-      if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-      elif [ -f package-lock.json ]; then npm ci; \
-      elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
-      else echo "No lockfile found" && exit 1; \
-      fi
+    if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then npm install --legacy-peer-deps; \
+    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
+    else echo "No lockfile found" && exit 1; \
+    fi
+  
     
     # -------- BUILDER --------
     FROM base AS builder
