@@ -12,8 +12,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json ./
 
 # Install dependencies including Tailwind CSS explicitly
-RUN npm install
-RUN npm install --save-dev tailwindcss postcss autoprefixer @tailwindcss/typography
+RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps --save-dev tailwindcss postcss autoprefixer @tailwindcss/typography
 
 # Copy the rest of the application
 COPY . .
