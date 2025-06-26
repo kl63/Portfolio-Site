@@ -28,6 +28,7 @@ module.exports = {
       },
       textColor: {
         foreground: 'var(--foreground)',
+        primary: 'var(--primary)',
       },
     },
   },
