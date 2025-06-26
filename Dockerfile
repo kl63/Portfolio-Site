@@ -16,28 +16,9 @@ RUN npm install --legacy-peer-deps
 RUN npm install --save-dev --legacy-peer-deps tailwindcss@3.4.0 postcss@8.4.33 autoprefixer@10.4.16 @tailwindcss/typography@0.5.10
 
 # Create Tailwind and PostCSS configuration files
-RUN cat > tailwind.config.js << 'EOL'
-module.exports = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx}", 
-    "./components/**/*.{js,ts,jsx,tsx}", 
-    "./app/**/*.{js,ts,jsx,tsx}"
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-};
-EOL
+RUN echo "module.exports = { content: ['./pages/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}', './app/**/*.{js,ts,jsx,tsx}'], theme: { extend: {} }, plugins: [] };" > tailwind.config.js
 
-RUN cat > postcss.config.js << 'EOL'
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-};
-EOL
+RUN echo "module.exports = { plugins: { tailwindcss: {}, autoprefixer: {} } };" > postcss.config.js
 
 # Copy project files
 COPY . .
