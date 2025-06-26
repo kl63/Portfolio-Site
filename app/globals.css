@@ -183,7 +183,8 @@
 }
 
 .markdown-content code {
-  @apply font-mono text-sm bg-muted/30 px-1 py-0.5 rounded;
+  @apply font-mono text-sm px-1 py-0.5 rounded;
+  background-color: rgba(var(--muted-rgb), 0.3);
 }
 
 .markdown-content pre code {
