@@ -18,12 +18,11 @@
     
     # Install dependencies based on lock file
     RUN \
-    if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm install --legacy-peer-deps; \
-    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
-    else echo "No lockfile found" && exit 1; \
-    fi
-  
+      if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+      elif [ -f package-lock.json ]; then npm install --legacy-peer-deps; \
+      elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
+      else echo "No lockfile found" && exit 1; \
+      fi
     
     # -------- BUILDER --------
     FROM base AS builder
@@ -34,7 +33,7 @@
     # Install ESLint and create Next.js production build
     RUN \
       if [ -f yarn.lock ]; then yarn add --dev eslint && yarn build; \
-      elif [ -f package-lock.json ]; then npm install --save-dev eslint && npm run build; \
+      elif [ -f package-lock.json ]; then npm install --save-dev eslint --legacy-peer-deps && npm run build; \
       elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm add -D eslint && pnpm run build; \
       else echo "No lockfile found" && exit 1; \
       fi
