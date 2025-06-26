@@ -14,7 +14,19 @@ module.exports = {
           },
         },
       },
+      borderColor: {
+        border: 'var(--border)',
+      },
+      ringColor: {
+        ring: 'var(--ring)',
+      },
+      backgroundColor: {
+        background: 'var(--background)',
+      },
+      textColor: {
+        foreground: 'var(--foreground)',
+      },
     },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 }
